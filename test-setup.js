@@ -14,7 +14,7 @@ try {
 
 // Test 2: Check environment variables
 console.log('\n=== Test 2: Environment Variables ===');
-const requiredVars = ['RPC_URL', 'PRIVATE_KEY', 'TOKEN_CONTRACT_ADDRESS', 'RECIPIENT_ADDRESS'];
+const requiredVars = ['RPC_URL', 'PRIVATE_KEY', 'TOKEN_CONTRACT_ADDRESS', 'LATAMEX_ADDRESS'];
 let envTestPassed = true;
 
 requiredVars.forEach(varName => {
@@ -39,8 +39,8 @@ try {
         console.log(`✅ Token contract address validation: ${isValidContract ? 'Valid' : 'Invalid'}`);
     }
     
-    if (process.env.RECIPIENT_ADDRESS && !process.env.RECIPIENT_ADDRESS.includes('YOUR_')) {
-        const isValidRecipient = ethers.isAddress(process.env.RECIPIENT_ADDRESS);
+    if (process.env.LATAMEX_ADDRESS && !process.env.LATAMEX_ADDRESS.includes('YOUR_')) {
+        const isValidRecipient = ethers.isAddress(process.env.LATAMEX_ADDRESS);
         console.log(`✅ Recipient address validation: ${isValidRecipient ? 'Valid' : 'Invalid'}`);
     }
 } catch (error) {

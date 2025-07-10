@@ -22,7 +22,7 @@ async function examples() {
         // Example 4: Transfer tokens (commented out for safety)
         console.log('\n=== Example 4: Token Transfer (Commented for Safety) ===');
         console.log('// Uncomment the following lines to perform actual transfers:');
-        console.log('// await tokenTransfer.transferTokens(process.env.RECIPIENT_ADDRESS, 0.1);');
+        console.log('// await tokenTransfer.transferTokens(process.env.LATAMEX_ADDRESS, 0.1);');
         
         // Example 5: Batch operations
         console.log('\n=== Example 5: Batch Operations ===');
@@ -47,7 +47,7 @@ async function customExample() {
         
         // Custom transfer amount
         const customAmount = 0.5;
-        const customRecipient = process.env.RECIPIENT_ADDRESS;
+        const customRecipient = process.env.LATAMEX_ADDRESS;
         
         console.log(`Preparing to transfer ${customAmount} tokens to ${customRecipient}`);
         

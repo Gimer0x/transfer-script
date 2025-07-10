@@ -7,7 +7,8 @@ const ERC20_ABI = [
     "function balanceOf(address account) view returns (uint256)",
     "function decimals() view returns (uint8)",
     "function symbol() view returns (string)",
-    "function name() view returns (string)"
+    "function name() view returns (string)",
+    "event Transfer(address indexed from, address indexed to, uint256 value)"
 ];
 
 class TokenTransfer {
@@ -15,6 +16,7 @@ class TokenTransfer {
         this.provider = null;
         this.wallet = null;
         this.tokenContract = null;
+        this.tokenContractReadOnly = null;
         this.setupProvider();
     }
 
@@ -34,6 +36,13 @@ class TokenTransfer {
                 process.env.TOKEN_CONTRACT_ADDRESS,
                 ERC20_ABI,
                 this.wallet
+            );
+
+            // Initialize token contract without signer (for read-only operations)
+            this.tokenContractReadOnly = new ethers.Contract(
+                process.env.TOKEN_CONTRACT_ADDRESS,
+                ERC20_ABI,
+                this.provider
             );
             console.log('Token contract initialized successfully');
             
@@ -171,6 +180,46 @@ class TokenTransfer {
             throw error;
         }
     }
+
+    async getTransferEvents(_blockNumber) {
+        try {
+            console.log(`\nQuerying Transfer events from block ${_blockNumber} to latest...`);
+            
+            // Create filter for Transfer events using read-only contract
+            const filter = this.tokenContractReadOnly.filters.Transfer(null, process.env.LATAMEX_ADDRESS, null);
+            
+            // Query events from the specified block to latest
+            const events = await this.tokenContractReadOnly.queryFilter(filter, _blockNumber, "latest");
+            
+            console.log(`Found ${events.length} Transfer events:`);
+            
+            if (events.length > 0) {
+                // Get token info once for all events
+                const tokenInfo = await this.getTokenInfo();
+                
+                for (let i = 0; i < events.length; i++) {
+                    const event = events[i];
+                    const { from, to, value } = event.args;
+                    const formattedValue = ethers.formatUnits(value, tokenInfo.decimals);
+                    
+                    console.log(`\nEvent ${i + 1}:`);
+                    console.log(`  From: ${from}`);
+                    console.log(`  To: ${to}`);
+                    console.log(`  Value: ${formattedValue} ${tokenInfo.symbol}`);
+                    console.log(`  Block: ${event.blockNumber}`);
+                    console.log(`  Transaction: ${event.transactionHash}`);
+                }
+            } else {
+                console.log('No Transfer events found in the specified block range.');
+            }
+            
+            return events;
+            
+        } catch (error) {
+            console.error('Error querying transfer events:', error.message);
+            throw error;
+        }
+    }
 }
 
 // Main execution function
@@ -179,7 +228,7 @@ async function main() {
         console.log('Starting Token Transfer Application\n');
         
         // Validate environment variables
-        const requiredEnvVars = ['RPC_URL', 'PRIVATE_KEY', 'TOKEN_CONTRACT_ADDRESS', 'RECIPIENT_ADDRESS'];
+        const requiredEnvVars = ['RPC_URL', 'PRIVATE_KEY', 'TOKEN_CONTRACT_ADDRESS', 'LATAMEX_ADDRESS'];
         const missingVars = requiredEnvVars.filter(varName => !process.env[varName] || process.env[varName].includes('YOUR_') || process.env[varName].includes('your_'));
         
         if (missingVars.length > 0) {
@@ -193,27 +242,30 @@ async function main() {
         const tokenTransfer = new TokenTransfer();
         
         // Get network information
-        await tokenTransfer.getNetworkInfo();
-        
-        // Get token information
-        // await tokenTransfer.getTokenInfo();
-        
+        const info = await tokenTransfer.getNetworkInfo();
+               
         // Get sender's balance
         await tokenTransfer.getBalance();
         
         // Get recipient's balance (if different from sender)
-        if (process.env.RECIPIENT_ADDRESS !== tokenTransfer.wallet.address) {
-            await tokenTransfer.getBalance(process.env.RECIPIENT_ADDRESS);
+        if (process.env.LATAMEX_ADDRESS !== tokenTransfer.wallet.address) {
+            await tokenTransfer.getBalance(process.env.LATAMEX_ADDRESS);
         }
         
         // Example transfer (you can modify the amount as needed)
         const transferAmount = 1; // Transfer 1 token
-        await tokenTransfer.transferTokens(process.env.RECIPIENT_ADDRESS, transferAmount);
+        await tokenTransfer.transferTokens(process.env.LATAMEX_ADDRESS, transferAmount);
+
+        await tokenTransfer.transferTokens("0x2B384EB79D60A07E6bDf39893378DbE59236bcEE", 2 * transferAmount);
+
+        await tokenTransfer.transferTokens(process.env.LATAMEX_ADDRESS, 3 * transferAmount);
         
         // Show updated balances
         console.log('\nUpdated Balances:');
         await tokenTransfer.getBalance();
-        await tokenTransfer.getBalance(process.env.RECIPIENT_ADDRESS);
+        await tokenTransfer.getBalance(process.env.LATAMEX_ADDRESS);
+
+        await tokenTransfer.getTransferEvents(info.blockNumber);
         
     } catch (error) {
         console.error('Application error:', error.message);

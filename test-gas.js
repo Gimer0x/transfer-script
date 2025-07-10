@@ -22,7 +22,7 @@ async function testGasEstimation() {
                 
                 // Estimate gas
                 const estimatedGas = await tokenTransfer.tokenContract.transfer.estimateGas(
-                    process.env.RECIPIENT_ADDRESS, 
+                    process.env.LATAMEX_ADDRESS, 
                     amountInWei
                 );
                 
@@ -59,7 +59,7 @@ async function testSmallTransfer() {
         
         console.log(`Testing transfer of ${testAmount} tokens...`);
         
-        await tokenTransfer.transferTokens(process.env.RECIPIENT_ADDRESS, testAmount);
+        await tokenTransfer.transferTokens(process.env.LATAMEX_ADDRESS, testAmount);
         
         console.log('✅ Small transfer test completed successfully!');
         

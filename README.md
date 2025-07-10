@@ -50,7 +50,7 @@ A JavaScript project for transferring ERC-20 tokens on Ethereum blockchain using
    GAS_PRICE_GWEI=20
    
    # Recipient Address
-   RECIPIENT_ADDRESS=0x9876543210987654321098765432109876543210
+   LATAMEX_ADDRESS=0x9876543210987654321098765432109876543210
    ```
 
 ### Getting Required Values
